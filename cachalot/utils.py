@@ -121,7 +121,12 @@ def _find_subqueries_in_where(children):
             elif rhs_class is QuerySet:
                 yield rhs.query
             elif rhs_class is Subquery or rhs_class is Exists:
-                yield rhs.queryset.query
+                # Django 3 compatibility
+                # Django #27149 - https://github.com/django/django/commit/96b6ad94d9ebbd57b77b44e185ee215b5b899ac8
+                if hasattr(rhs, 'queryset'):
+                    yield rhs.queryset.query
+                else:
+                    yield rhs.query
             elif rhs_class in UNCACHABLE_FUNCS:
                 raise UncachableQuery
 
